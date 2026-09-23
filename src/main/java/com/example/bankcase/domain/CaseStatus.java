@@ -1,4 +1,4 @@
-package com.example.bankcase;
+package com.example.bankcase.domain;
 
 public sealed interface CaseStatus permits CaseStatus.New, CaseStatus.InProgress, CaseStatus.Resolved {
 

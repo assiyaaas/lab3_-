@@ -1,4 +1,4 @@
-package com.example.bankcase;
+package com.example.bankcase.domain;
 
 public record CaseId(String value) {
     public CaseId {
