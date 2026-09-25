@@ -21,3 +21,43 @@ Each Case has a CaseId and a CaseStatus.
 
 - New → Resolved is forbidden because a new case must be processed before it can be resolved.
 - Resolved → New is forbidden because a resolved case cannot directly return to the new state.
+
+
+# Spring Boot integration
+
+The application uses Spring Boot to connect the business logic with the service layer.
+
+## Package diagram
+
+```text
+com.example.bankcase
+│
+├── dto
+├── client
+├── handler
+├── config
+│   ├── BankCaseManagementApplication
+│   └── RuleConfig
+│
+├── CaseService
+│
+└── domain
+    ├── CaseId
+    ├── CaseStatus
+    ├── CasePolicy
+    ├── Rule
+    ├── TransitionRule
+    ├── CaseStopRule
+    └── RuleChain
+
+Application
+    ↓
+CaseService (@Service)
+    ↓
+Rule
+    ↓
+RuleChain
+    ↓
+TransitionRule + CaseStopRule
+    ↓
+CasePolicy / CaseStatus
