@@ -1,11 +1,14 @@
 package com.example.bankcase;
 
 import com.example.bankcase.domain.CaseId;
+import com.example.bankcase.domain.CaseNumber;
 import com.example.bankcase.domain.CasePolicy;
 import com.example.bankcase.domain.CaseStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,35 +39,44 @@ class CasePolicyTest {
         }
     }
 
+    // ---------- CaseId (UUID, surrogate key) ----------
+
     @Test
     void caseIdCannotBeNull() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new CaseId(null)
-        );
+        assertThrows(IllegalArgumentException.class, () -> new CaseId(null));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void caseIdFromBlankTextThrows(String raw) {
+        assertThrows(IllegalArgumentException.class, () -> CaseId.of(raw));
     }
 
     @Test
-    void caseIdCannotBeEmpty() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new CaseId("")
-        );
+    void newIdIsUnique() {
+        assertNotEquals(CaseId.newId(), CaseId.newId());
     }
 
     @Test
-    void caseIdCannotBeBlank() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new CaseId("   ")
-        );
+    void caseIdReadsBackFromText() {
+        CaseId id = CaseId.newId();
+        assertEquals(id, CaseId.of(id.value().toString()));
+    }
+
+    // ---------- CaseNumber (CASE-001, business key) ----------
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void caseNumberCannotBeNullOrBlank(String raw) {
+        assertThrows(IllegalArgumentException.class, () -> new CaseNumber(raw));
     }
 
     @Test
-    void validCaseIdIsAccepted() {
-        CaseId id = new CaseId("CASE-001");
-
-        assertEquals("CASE-001", id.value());
+    void validCaseNumberIsAccepted() {
+        CaseNumber number = new CaseNumber("CASE-001");
+        assertEquals("CASE-001", number.value());
     }
 
     private CaseStatus statusFromString(String status) {

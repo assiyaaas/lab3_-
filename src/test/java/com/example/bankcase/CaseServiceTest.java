@@ -1,6 +1,7 @@
 package com.example.bankcase;
 
 import com.example.bankcase.config.CaseService;
+import com.example.bankcase.domain.CaseId;
 import com.example.bankcase.domain.CaseStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,12 @@ class CaseServiceTest {
     @Autowired
     private CaseService caseService;
 
+    private final CaseId id = CaseId.newId();
+
     @Test
     void springInjectsCaseService() {
         CaseStatus result = caseService.move(
+                id,
                 new CaseStatus.New(),
                 new CaseStatus.InProgress()
         );
@@ -29,7 +33,7 @@ class CaseServiceTest {
     @Test
     void resolvedCaseIsStoppedByStopRule() {
         IllegalStateException e = assertThrows(IllegalStateException.class,
-                () -> caseService.move(new CaseStatus.Resolved(), new CaseStatus.InProgress()));
+                () -> caseService.move(id, new CaseStatus.Resolved(), new CaseStatus.InProgress()));
         assertTrue(e.getMessage().contains("resolved case cannot be changed"));
     }
 }
