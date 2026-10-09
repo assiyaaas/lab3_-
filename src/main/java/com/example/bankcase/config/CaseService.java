@@ -1,4 +1,4 @@
-package com.example.bankcase;
+package com.example.bankcase.config;
 
 import com.example.bankcase.domain.CaseStatus;
 import com.example.bankcase.domain.Rule;

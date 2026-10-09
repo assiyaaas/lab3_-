@@ -16,8 +16,8 @@ public class RuleConfig {
     public Rule caseRules() {
         return new RuleChain(
                 List.of(
-                        new TransitionRule(),
-                        new CaseStopRule()
+                        new CaseStopRule(),    // stop-factor first: a resolved case cannot be changed
+                        new TransitionRule()   // then the status table
                 )
         );
     }

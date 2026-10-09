@@ -22,42 +22,38 @@ Each Case has a CaseId and a CaseStatus.
 - New → Resolved is forbidden because a new case must be processed before it can be resolved.
 - Resolved → New is forbidden because a resolved case cannot directly return to the new state.
 
+# Rules
+
+`Rule` is a plain Java interface in `domain`. Two implementations work together through `RuleChain`:
+
+- `CaseStopRule`: stop-factor, runs first. A resolved case cannot be changed in any direction.
+- `TransitionRule`: the status table above (delegates to `CasePolicy.move`).
+
+The chain is wired with a `@Bean` in `config/RuleConfig`. Spring injects `Rule` into `CaseService`.
 
 # Spring Boot integration
 
-The application uses Spring Boot to connect the business logic with the service layer.
-
 ## Package diagram
 
-```text
-com.example.bankcase
-│
-├── dto
-├── client
-├── handler
-├── config
-│   ├── BankCaseManagementApplication
-│   └── RuleConfig
-│
-├── CaseService
-│
-└── domain
-    ├── CaseId
-    ├── CaseStatus
-    ├── CasePolicy
-    ├── Rule
-    ├── TransitionRule
-    ├── CaseStopRule
-    └── RuleChain
+```
+  dto          client        handler         config
+  (JSON later) (HTTP later)  (HTTP week 9)   BankCaseManagementApplication
+                                             RuleConfig
+                                             @Service CaseService
+       \            \            /                |
+        \            \          /           injects Rule
+         \            \        /
+                     domain
+          CaseId  CaseStatus  CasePolicy
+          Rule  + CaseStopRule, TransitionRule (RuleChain)
+                     (no Spring)
+```
 
-Application
-    ↓
-CaseService (@Service)
-    ↓
-Rule
-    ↓
-RuleChain
-    ↓
-TransitionRule + CaseStopRule
-    ↓
-CasePolicy / CaseStatus
+Arrows point inward. Domain never imports `org.springframework`; `DomainHasNoSpringTest` fails the build if it does.
+
+# Running
+
+```
+mvn -q verify          # tests
+mvn spring-boot:run    # starts the application
+```

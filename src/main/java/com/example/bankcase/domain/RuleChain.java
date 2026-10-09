@@ -7,7 +7,10 @@ public class RuleChain implements Rule {
     private final List<Rule> rules;
 
     public RuleChain(List<Rule> rules) {
-        this.rules = rules;
+        if (rules == null || rules.isEmpty()) {
+            throw new IllegalArgumentException("RuleChain needs at least one rule");
+        }
+        this.rules = List.copyOf(rules);
     }
 
     @Override
