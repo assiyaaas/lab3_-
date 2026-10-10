@@ -57,3 +57,44 @@ Arrows point inward. Domain never imports `org.springframework`; `DomainHasNoSpr
 mvn -q verify          # tests
 mvn spring-boot:run    # starts the application
 ```
+# Database and JDBC (Lab 3)
+
+The project uses PostgreSQL to store bank customer cases.
+The database connection is configured in `application.properties`.
+
+## Database table
+
+The table is named `bank_case` and contains:
+
+| Column | Type | Purpose |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `business_key` | TEXT | Unique business number of a case |
+| `status` | TEXT | Case status, restricted by a CHECK constraint |
+| `title` | TEXT | Case title |
+| `created_at` | TIMESTAMPTZ | Creation time, defaults to `now()` |
+
+The `business_key` column is required and unique.
+The `status` column accepts `NEW`, `IN_PROGRESS`, and `RESOLVED`.
+
+The SQL schema is stored in `src/main/resources/db/schema.sql`.
+Spring Boot is configured to initialize the schema at startup.
+
+## JDBC repository
+
+`CaseJdbc` is located in the `persistence` package.
+It uses Spring's `JdbcTemplate` to:
+
+- Insert a case using parameterized SQL placeholders.
+- Count cases by their business number.
+
+The domain package remains independent of Spring and JDBC.
+
+## Running verification
+
+Run the project verification with the Maven Wrapper:
+
+```bash
+./mvnw -q verify
+
+```
