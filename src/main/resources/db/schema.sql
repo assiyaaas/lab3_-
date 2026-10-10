@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS bank_case (
     title TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT bank_case_status_known
-        CHECK (status IN ('NEW', 'IN_PROGRESS', 'RESOLVED'))
+        CHECK (status IN ('New', 'InProgress', 'Resolved'))
 );
