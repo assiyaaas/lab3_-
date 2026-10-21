@@ -57,3 +57,59 @@ Arrows point inward. Domain never imports `org.springframework`; `DomainHasNoSpr
 mvn -q verify          # tests
 mvn spring-boot:run    # starts the application
 ```
+# Database: Flyway and Hibernate (Lab 3)
+
+The project uses PostgreSQL to store bank customer cases.
+The database connection is configured in `application.properties`.
+
+## Database table
+
+The table is named `bank_case` and contains:
+
+| Column | Type | Purpose |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `business_key` | TEXT | Unique business number of a case |
+| `status` | TEXT | Case status, restricted by a CHECK constraint |
+| `title` | TEXT | Case title |
+| `created_at` | TIMESTAMPTZ | Creation time, defaults to `now()` |
+
+The `business_key` column is required and unique.
+The `status` column accepts `New`, `InProgress`, and `Resolved`.
+
+The schema is managed by Flyway: migrations live in `src/main/resources/db/migration`
+(`V1__create_bank_case.sql`) and are applied at startup.
+Hibernate runs with `ddl-auto=validate`: it never changes the schema, it only checks that the entities match it.
+
+## JPA persistence
+
+The `persistence` package contains:
+
+- `CaseEntity` – JPA entity mapped to `bank_case`; `status` is a string with the same tokens as the CHECK.
+- `CaseMapper` – translates the sealed `CaseStatus` to the column text and back; unknown text throws.
+- `CaseJpa` – uses `EntityManager`: `persist` for the INSERT, a JPQL count by business key, and `flush`.
+
+`CaseService` flushes inside its `try`, so the UNIQUE violation (23505) becomes `DuplicateCase`
+inside the `@Transactional` method and the transaction rolls back.
+
+The domain package remains independent of Spring, JPA and JDBC.
+
+## Resetting the local database
+
+Flyway must create the table from `V1`. If `css` already has the table, recreate it
+and boot again. Connect to the `postgres` database as the `postgres` superuser
+(the `css` role cannot create databases):
+
+```sql
+DROP DATABASE IF EXISTS css WITH (FORCE);
+CREATE DATABASE css OWNER css;
+```
+
+## Running verification
+
+Run the project verification with the Maven Wrapper:
+
+```bash
+./mvnw -q verify
+
+```

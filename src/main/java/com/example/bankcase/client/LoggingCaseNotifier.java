@@ -7,10 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Temporary adapter for the CaseNotifier port: only writes to the log.
- * A real HTTP/SMS call replaces it in a later lab.
- */
 @Component
 public class LoggingCaseNotifier implements CaseNotifier {
 
