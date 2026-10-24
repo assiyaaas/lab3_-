@@ -10,13 +10,18 @@ import com.example.bankcase.domain.RuleChain;
 import com.example.bankcase.domain.TransitionRule;
 import com.example.bankcase.persistence.CaseJpa;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /** The outbound port CaseNotifier is mocked: no real SMS or HTTP call is made. */
 class CaseServiceNotifierTest {
@@ -28,10 +33,14 @@ class CaseServiceNotifierTest {
     private final CaseId id = CaseId.newId();
 
     @Test
-    void allowedMoveNotifiesOnce() {
+    void allowedMoveNotifiesOnceWithTheSameId() {
         service.move(id, new CaseStatus.New(), new CaseStatus.InProgress());
 
-        verify(notifier).caseMoved(id, new CaseStatus.InProgress());
+        // the captor answers the audit question: was the downstream called with the id from the request?
+        ArgumentCaptor<CaseId> captor = ArgumentCaptor.forClass(CaseId.class);
+        verify(notifier, times(1)).caseMoved(captor.capture(), eq(new CaseStatus.InProgress()));
+        assertEquals(id, captor.getValue());
+        verifyNoMoreInteractions(notifier);
     }
 
     @Test

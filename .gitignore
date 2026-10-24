@@ -35,6 +35,7 @@ build/
 ### Secrets ###
 .env
 *.env
+*.pem
 
 ### macOS ###
 .DS_Store

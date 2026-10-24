@@ -14,7 +14,12 @@ Title: CSS-?? JPA and Flyway
 - `DomainHasNoSpringTest` also checks for `jakarta.persistence`
 - README: Flyway + JPA section
 
+- Maven modules: `domain` (junit only, no Spring) and `app` (Spring Boot, JPA, Flyway)
+- Tests: `@Nested` + `assertAll` in `CasePolicyTest`, `ArgumentCaptor` in `CaseServiceNotifierTest`, `@DataJpaTest` slice for `CaseJpa`
+- `CaseService`: explicit `Isolation.READ_COMMITTED`
+
 ## Checklist
+- [ ] `domain` module has no Spring dependency; `mvn -pl domain -q test` is green
 - [ ] Story ID in the title
 - [ ] Same product as Labs 1 and 2
 - [ ] Week 4 tests still green (status table + one mocked port)

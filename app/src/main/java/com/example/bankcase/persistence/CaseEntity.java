@@ -12,21 +12,18 @@ import java.util.UUID;
 @Table(name = "bank_case")
 public class CaseEntity {
 
-    // the UUID from CaseId, set in Java: no @GeneratedValue
     @Id
     private UUID id;
 
     @Column(name = "business_key", nullable = false, unique = true)
     private String businessKey;
 
-    // same tokens as the CHECK in V1: New, InProgress, Resolved
     @Column(nullable = false)
     private String status;
 
     @Column(nullable = false)
     private String title;
 
-    // filled by the database default now()
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 

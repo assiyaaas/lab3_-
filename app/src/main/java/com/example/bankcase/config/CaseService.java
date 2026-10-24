@@ -9,6 +9,7 @@ import com.example.bankcase.domain.Rule;
 import com.example.bankcase.persistence.CaseJpa;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.bankcase.persistence.CaseMapper.toEntity;
@@ -32,7 +33,9 @@ public class CaseService {
         return to;
     }
 
-    @Transactional
+    // READ_COMMITTED is the PostgreSQL default, written out so the choice is visible:
+    // no dirty reads; a duplicate business_key is stopped by UNIQUE, not by the isolation level
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void register(CaseId id, CaseNumber number, String title) {
         try {
             cases.insert(toEntity(id, number, new CaseStatus.New(), title));
@@ -42,7 +45,7 @@ public class CaseService {
         }
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void insertTwice(CaseNumber number) {
         cases.insert(toEntity(CaseId.newId(), number, new CaseStatus.New(), "Card blocked"));
         try {
