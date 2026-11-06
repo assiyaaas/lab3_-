@@ -108,6 +108,22 @@ class CaseControllerWebTest {
     }
 
     @Test
+    void titleOf120CharactersIsCreated() throws Exception {
+        String title = "x".repeat(120);
+        UUID id = UUID.randomUUID();
+        when(service.register(any(CaseId.class), eq(new CaseNumber("CASE-001")), eq(title)))
+                .thenReturn(new CaseView(new CaseId(id), new CaseNumber("CASE-001"), "New", title));
+
+        mvc.perform(post(CASES)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"businessKey\":\"CASE-001\",\"title\":\"" + title + "\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", endsWith("/api/v1/bank-cases/" + id)))
+                .andExpect(jsonPath("$.status").value("New"))
+                .andExpect(jsonPath("$.title").value(title));
+    }
+
+    @Test
     void bodyThatIsNotJsonIs400() throws Exception {
         mvc.perform(post(CASES)
                         .contentType(MediaType.APPLICATION_JSON)
