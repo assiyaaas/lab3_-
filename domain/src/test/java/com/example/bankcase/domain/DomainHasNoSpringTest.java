@@ -21,7 +21,7 @@ class DomainHasNoSpringTest {
                     .filter(p -> p.toString().endsWith(".java"))
                     .filter(DomainHasNoSpringTest::mentionsForbidden)
                     .toList();
-            assertTrue(offenders.isEmpty(), "Spring, JDBC or JPA found in domain: " + offenders);
+            assertTrue(offenders.isEmpty(), "Spring, JDBC, JPA or validation found in domain: " + offenders);
         }
     }
 
@@ -29,7 +29,7 @@ class DomainHasNoSpringTest {
         try {
             String code = Files.readString(file);
             return code.contains("org.springframework") || code.contains("java.sql")
-                    || code.contains("jakarta.persistence");
+                    || code.contains("jakarta.persistence") || code.contains("jakarta.validation");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

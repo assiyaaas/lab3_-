@@ -4,6 +4,9 @@ import com.example.bankcase.domain.CaseNumber;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Repository
 public class CaseJpa {
 
@@ -16,6 +19,11 @@ public class CaseJpa {
     // persist always inserts; Spring Data save() with our UUID would SELECT first
     public void insert(CaseEntity row) {
         em.persist(row);
+    }
+
+    // read only: no insert, no flush
+    public Optional<CaseEntity> find(UUID id) {
+        return Optional.ofNullable(em.find(CaseEntity.class, id));
     }
 
     public int count(CaseNumber number) {

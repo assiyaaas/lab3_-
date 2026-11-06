@@ -3,6 +3,7 @@ package com.example.bankcase.persistence;
 import com.example.bankcase.domain.CaseId;
 import com.example.bankcase.domain.CaseNumber;
 import com.example.bankcase.domain.CaseStatus;
+import com.example.bankcase.domain.CaseView;
 
 /** Domain types in, entity out. Only translates: the policy decides whether a move is legal. */
 public final class CaseMapper {
@@ -17,6 +18,15 @@ public final class CaseMapper {
         row.setStatus(toText(status));
         row.setTitle(title);
         return row;
+    }
+
+    // entity out of the service: callers get the view, never the entity
+    public static CaseView toView(CaseEntity row) {
+        return new CaseView(
+                new CaseId(row.getId()),
+                new CaseNumber(row.getBusinessKey()),
+                toText(fromText(row.getStatus())), // an unknown token throws here, not on the wire
+                row.getTitle());
     }
 
     // sealed status -> text column

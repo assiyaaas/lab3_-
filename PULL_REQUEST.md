@@ -1,33 +1,31 @@
-Title: CSS-?? JPA and Flyway
+Title: CSS-?? REST contract and Spring Boot platform
 
 <!-- Replace CSS-?? with the real story ID from your Jira board -->
 
 ## What
-- `spring-boot-starter-jdbc` replaced by `spring-boot-starter-data-jpa` (Hibernate); `flyway-core` + `flyway-database-postgresql` added
-- `db/schema.sql` moved to `src/main/resources/db/migration/V1__create_bank_case.sql`: surrogate `id uuid`, `business_key` UNIQUE NOT NULL, CHECK on status
-- `persistence/CaseEntity`: `@Entity` for `bank_case`, `@Id` is the UUID from `CaseId` (no `@GeneratedValue`), `created_at` filled by the database default
-- `persistence/CaseMapper`: sealed `CaseStatus` <-> status text
-- `persistence/CaseJpa`: `EntityManager.persist`, JPQL count, `flush`
-- `CaseService.register` and `insertTwice`: `@Transactional`, flush inside `try`, `DataIntegrityViolationException` -> `DuplicateCase`
-- `application.properties`: `ddl-auto=validate`, `open-in-view=false`, Flyway defaults (`baseline-on-migrate=false`, `out-of-order=false`)
-- `CaseDatabaseTest`: `DELETE FROM bank_case` in `@BeforeEach` (no DROP, no schema.sql)
-- `DomainHasNoSpringTest` also checks for `jakarta.persistence`
-- README: Flyway + JPA section
+- Week 9: `POST /api/v1/bank-cases` creates one case through the Lab 3 `register`; `GET /api/v1/bank-cases/{id}` reads it by UUID (`CaseService.require`, read only)
+- `handler`: `CaseController`, `CreateCase` (`@NotBlank`, `@Size(max = 120)`), `CaseResponse`, `ApiError`, `ApiErrors` (`@RestControllerAdvice`)
+- `domain`: `CaseView` (what the service returns instead of the entity), `MissingCase`
+- 201 + `Location`, 400 `VALIDATION`, 404 `NOT_FOUND`, 409 `DUPLICATE`, 415 `UNSUPPORTED`, 500 `INTERNAL`; `X-Correlation-Id` echoed or minted
+- springdoc 2.8.17: create lists 201, 400, 409; get lists 200, 400, 404
+- Week 10: `application.yaml` + `application-dev.yaml` + `application-prod.yaml`, `spring.profiles.default: dev`
+- `app.downstream` (base URL + `2s` timeout) bound by `@ConfigurationProperties` into `DownstreamProperties`, injected into `LoggingCaseNotifier`
+- Actuator: only `health` and `info`; health details hidden
+- Tests: `CaseControllerWebTest` (`@WebMvcTest`), `ApiIntegrationTest` (HTTP on PostgreSQL), `DownstreamPropertiesTest` (dev profile)
+- On a running app the second POST of the same business key is 409 and `SELECT count(*)` for that key is still 1 (also asserted in `ApiIntegrationTest`)
 
-- Maven modules: `domain` (junit only, no Spring) and `app` (Spring Boot, JPA, Flyway)
-- Tests: `@Nested` + `assertAll` in `CasePolicyTest`, `ArgumentCaptor` in `CaseServiceNotifierTest`, `@DataJpaTest` slice for `CaseJpa`
-- `CaseService`: explicit `Isolation.READ_COMMITTED`
-
-## Checklist
-- [ ] `domain` module has no Spring dependency; `mvn -pl domain -q test` is green
-- [ ] Story ID in the title
-- [ ] Same product as Labs 1 and 2
-- [ ] Week 4 tests still green (status table + one mocked port)
-- [ ] V1 has a surrogate id, a `UNIQUE` business key, `CHECK` on statuses
-- [ ] Empty database (`css` recreated) -> boot -> table exists, `flyway_schema_history` has version 1
-- [ ] `ddl-auto` is `validate`; the entity lives in `persistence`
-- [ ] `secondStatementRollsBack` -> count is 0
-- [ ] `secondRequestKeepsTheFirst` -> count is 1
-- [ ] `domain` has no `jakarta.persistence`, no `java.sql`, no `org.springframework`
-- [ ] `mvn -q verify` is green against PostgreSQL
-- [ ] No REST controller, no cloud passwords, no `target/` in git
+## PR checklist
+- [ ] Story IDs in the title
+- [ ] Same product as Labs 1–3
+- [ ] `POST` and `GET` under `/api/v1/bank-cases`. Path id is a UUID.
+- [ ] 201 + `Location`, 400 `VALIDATION` (field name), 404 `NOT_FOUND`, 409 `DUPLICATE`
+- [ ] Second POST of the same business key is 409 and the row count stays 1
+- [ ] Error JSON is only `code`, `message`, `correlationId`. Stack traces stay off the wire
+- [ ] Response type is not the entity. Domain has no Spring and no `jakarta.validation`
+- [ ] `/swagger-ui.html` shows 201, 400, 409 on create and 200, 404 on get
+- [ ] `@WebMvcTest` covers 201, 400, 404, 409, and the correlation header
+- [ ] Datasource and `app.downstream` (base URL + timeout) come from yaml
+- [ ] `dev` profile is localhost `css`/`css`. `prod` uses env vars. No cloud password in git
+- [ ] `GET /actuator/health` is 200. `env` and `heapdump` are 404
+- [ ] Lab 3 tests still green. `mvn -q verify` is green
+- [ ] No Spring Security, no Dockerfile, no `target/` in git

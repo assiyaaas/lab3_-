@@ -4,7 +4,9 @@ import com.example.bankcase.domain.CaseId;
 import com.example.bankcase.domain.CaseNotifier;
 import com.example.bankcase.domain.CaseNumber;
 import com.example.bankcase.domain.CaseStatus;
+import com.example.bankcase.domain.CaseView;
 import com.example.bankcase.domain.DuplicateCase;
+import com.example.bankcase.domain.MissingCase;
 import com.example.bankcase.domain.Rule;
 import com.example.bankcase.persistence.CaseJpa;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.example.bankcase.persistence.CaseMapper.toEntity;
+import static com.example.bankcase.persistence.CaseMapper.toView;
 
 @Service
 public class CaseService {
@@ -36,13 +39,23 @@ public class CaseService {
     // READ_COMMITTED is the PostgreSQL default, written out so the choice is visible:
     // no dirty reads; a duplicate business_key is stopped by UNIQUE, not by the isolation level
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void register(CaseId id, CaseNumber number, String title) {
+    public CaseView register(CaseId id, CaseNumber number, String title) {
+        var row = toEntity(id, number, new CaseStatus.New(), title);
         try {
-            cases.insert(toEntity(id, number, new CaseStatus.New(), title));
+            cases.insert(row);
             cases.flush();
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateCase(number);
         }
+        return toView(row);
+    }
+
+    // GET: loads only. No register, no move, no flush
+    @Transactional(readOnly = true)
+    public CaseView require(CaseId id) {
+        return cases.find(id.value())
+                .map(row -> toView(row))
+                .orElseThrow(() -> new MissingCase(id));
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)

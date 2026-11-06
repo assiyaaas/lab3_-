@@ -1,0 +1,44 @@
+# Shared by every run. No URL, no password here: those live in application-dev.yaml / application-prod.yaml.
+spring:
+  application:
+    name: bank-case-management
+  profiles:
+    # a local boot without flags uses the laptop database; production sets SPRING_PROFILES_ACTIVE=prod
+    default: dev
+  jpa:
+    hibernate:
+      # Flyway owns the schema; Hibernate only checks the entity against it
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    out-of-order: false
+
+# Boot's own error page must not leak internals either
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # env, beans, heapdump and shutdown stay closed
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: bank-case-management
+    description: Bank Customer Case Management
